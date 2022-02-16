@@ -11,7 +11,7 @@ namespace IDA77_InitTool
             {
                 None = 0b_00,
                 IDA32 = 0b_01,
-                IDA64 = 0b_10,
+                IDA64 = 0b_10
             }
 
             public static IDAExistFlag CheckIDA(string idaPath, string ida64Path)
@@ -36,8 +36,7 @@ namespace IDA77_InitTool
             {
                 None = 0b_00,
                 Dir = 0b_01,
-                File = 0b_10,
-
+                File = 0b_10
             }
 
             public static PythonExistFlag CheckPython(string pyDirPath, string pyFilePath)
