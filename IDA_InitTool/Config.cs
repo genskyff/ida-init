@@ -2,9 +2,9 @@
 using System.IO;
 using Microsoft.Win32;
 using IWshRuntimeLibrary;
-using static IDA77_InitTool.Checker.IDAChecker;
+using static IDA90_InitTool.Checker.IDAChecker;
 
-namespace IDA77_InitTool
+namespace IDA90_InitTool
 {
     class Config
     {
@@ -42,15 +42,11 @@ namespace IDA77_InitTool
             shortcut.Save();
         }
 
-        public static void SetIDADesktopShortcut(IDAExistFlag idaCheckFlag, string idaPath, string ida64Path)
+        public static void SetIDADesktopShortcut(IDAExistFlag idaCheckFlag, string idaPath)
         {
-            if ((idaCheckFlag & IDAExistFlag.IDA32) == IDAExistFlag.IDA32)
+            if (idaCheckFlag == IDAExistFlag.IDA)
             {
-                CreateDesktopShortcut("IDA Pro (x32)", idaPath, "The Interactive Disassembler");
-            }
-            if ((idaCheckFlag & IDAExistFlag.IDA64) == IDAExistFlag.IDA64)
-            {
-                CreateDesktopShortcut("IDA Pro (x64)", ida64Path, "The Interactive Disassembler");
+                CreateDesktopShortcut("IDA Pro", idaPath, "The Interactive Disassembler");
             }
         }
     }
