@@ -33,11 +33,9 @@ jobs:
       - name: Run test
         run: cargo test --verbose
 
-  release:
+  package:
     needs: check
     runs-on: windows-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout code
@@ -46,12 +44,44 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Set package info
+        run: |
+          $metadata = cargo metadata --no-deps --format-version 1 --locked | ConvertFrom-Json
+          $name = $metadata.packages[0].name
+          "NAME=$name" >> $env:GITHUB_ENV
+
       - name: Build release
         run: cargo build --locked --release --verbose
+
+      - name: Package release
+        uses: vimtor/action-zip@v1
+        with:
+          files: target/release/${{ env.NAME }}.exe
+          dest: ${{ env.NAME }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.NAME }}.zip
+          path: ${{ env.NAME }}.zip
+          if-no-files-found: error
+
+  release:
+    needs: package
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          merge-multiple: true
 
       - name: Publish release
         uses: softprops/action-gh-release@v3
         with:
-          files: target/release/ida-init.exe
+          files: artifacts/*.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
