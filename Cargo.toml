@@ -17,6 +17,9 @@ winreg = "0.56.0"
 [dev-dependencies]
 tempfile = "3.27.0"
 
+[build-dependencies]
+winresource = { version = "0.1.31", default-features = false }
+
 [profile.release]
 debug = "line-tables-only"
 strip = "debuginfo"
