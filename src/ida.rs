@@ -66,36 +66,41 @@ enum ExecutableRequirement {
 
 impl IdaInstallation {
     pub fn discover(root: Option<&Path>) -> Result<Self> {
-        Self::locate(root, ExecutableRequirement::Required)
+        Self::locate(root, ExecutableRequirement::Required)?.context(
+            "ida.exe was not found; place ida-init.exe in the IDA directory or run it from there",
+        )
+    }
+
+    pub fn discover_default() -> Result<Option<Self>> {
+        Self::locate(None, ExecutableRequirement::Required)
     }
 
     pub fn preview(root: Option<&Path>) -> Result<Self> {
-        Self::locate(root, ExecutableRequirement::Optional)
+        Self::locate(root, ExecutableRequirement::Optional)?
+            .context("could not determine the directory to preview")
     }
 
-    fn locate(root: Option<&Path>, requirement: ExecutableRequirement) -> Result<Self> {
+    fn locate(root: Option<&Path>, requirement: ExecutableRequirement) -> Result<Option<Self>> {
         if let Some(root) = root {
-            return Self::from_root(root.to_owned(), requirement);
+            return Self::from_root(root.to_owned(), requirement).map(Some);
         }
 
         let current_dir =
             env::current_dir().context("could not determine the current directory")?;
         if current_dir.join(IDA_EXECUTABLE).is_file() {
-            return Self::from_root(current_dir, requirement);
+            return Self::from_root(current_dir, requirement).map(Some);
         }
 
         let current_exe = env::current_exe().context("could not locate ida-init.exe")?;
         if let Some(root) = current_exe.parent()
             && root.join(IDA_EXECUTABLE).is_file()
         {
-            return Self::from_root(root.to_owned(), requirement);
+            return Self::from_root(root.to_owned(), requirement).map(Some);
         }
 
         match requirement {
-            ExecutableRequirement::Required => bail!(
-                "ida.exe was not found; place ida-init.exe in the IDA directory or run it from there"
-            ),
-            ExecutableRequirement::Optional => Self::from_root(current_dir, requirement),
+            ExecutableRequirement::Required => Ok(None),
+            ExecutableRequirement::Optional => Self::from_root(current_dir, requirement).map(Some),
         }
     }
 

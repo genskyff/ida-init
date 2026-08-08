@@ -38,6 +38,8 @@ fn main() -> ExitCode {
 
 #[cfg(windows)]
 fn run(cli: Cli) -> Result<()> {
+    use std::io::IsTerminal;
+
     use cliclack::{intro, log, select};
     use ida::{EmbeddedPython, IdaInstallation, InitOptions};
 
@@ -58,8 +60,24 @@ fn run(cli: Cli) -> Result<()> {
 
     let installation = if cli.dry_run {
         IdaInstallation::preview(cli.dir.as_deref())?
+    } else if let Some(root) = cli.dir.as_deref() {
+        IdaInstallation::discover(Some(root))?
+    } else if let Some(installation) = IdaInstallation::discover_default()? {
+        installation
+    } else if !io::stdin().is_terminal() {
+        IdaInstallation::discover(None)?
     } else {
-        IdaInstallation::discover(cli.dir.as_deref())?
+        let root: PathBuf = cliclack::input("Where is IDA installed?")
+            .placeholder("Directory containing ida.exe")
+            .validate(|input: &String| {
+                if std::path::Path::new(input).join("ida.exe").is_file() {
+                    Ok(())
+                } else {
+                    Err("ida.exe was not found in this directory")
+                }
+            })
+            .interact()?;
+        IdaInstallation::discover(Some(&root))?
     };
     if installation.executable_exists() {
         log::success(format!(
