@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.104"
 clap = { version = "4.6.6", features = ["derive"] }
-cliclack = "0.5.5"
+cliclack = "0.5.6"
 
 [target.'cfg(windows)'.dependencies]
 known-folders = "1.4.2"
