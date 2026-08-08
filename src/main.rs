@@ -10,8 +10,8 @@ use clap::{Parser, ValueHint};
 #[command(version, about = "Interactively initialize an IDA 9.x installation")]
 struct Cli {
     /// IDA installation directory containing ida.exe
-    #[arg(short = 'd', long, value_name = "PATH", value_hint = ValueHint::DirPath)]
-    ida_dir: Option<PathBuf>,
+    #[arg(short, long, value_name = "PATH", value_hint = ValueHint::DirPath)]
+    dir: Option<PathBuf>,
 
     /// Preview changes without writing anything; ida.exe is not required
     #[arg(short = 'n', long)]
@@ -57,9 +57,9 @@ fn run(cli: Cli) -> Result<()> {
     }
 
     let installation = if cli.dry_run {
-        IdaInstallation::preview(cli.ida_dir.as_deref())?
+        IdaInstallation::preview(cli.dir.as_deref())?
     } else {
-        IdaInstallation::discover(cli.ida_dir.as_deref())?
+        IdaInstallation::discover(cli.dir.as_deref())?
     };
     if installation.executable_exists() {
         log::success(format!(
@@ -154,19 +154,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parses_ida_directory_and_dry_run_options() {
-        let cli =
-            Cli::try_parse_from(["ida-init", "--ida-dir", r"D:\Tools\IDA", "--dry-run"]).unwrap();
+    fn parses_directory_and_dry_run_options() {
+        for option in ["--dir", "-d"] {
+            let cli = Cli::try_parse_from(["ida-init", option, "test-installation", "--dry-run"])
+                .unwrap();
 
-        assert_eq!(cli.ida_dir, Some(PathBuf::from(r"D:\Tools\IDA")));
-        assert!(cli.dry_run);
+            assert_eq!(cli.dir, Some(PathBuf::from("test-installation")));
+            assert!(cli.dry_run);
+        }
     }
 
     #[test]
     fn uses_interactive_defaults_without_options() {
         let cli = Cli::try_parse_from(["ida-init"]).unwrap();
 
-        assert_eq!(cli.ida_dir, None);
+        assert_eq!(cli.dir, None);
         assert!(!cli.dry_run);
     }
 }
