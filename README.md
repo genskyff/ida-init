@@ -12,7 +12,8 @@ A small interactive Windows utility for initializing IDA 9.x.
 ## Usage
 
 Run or double-click `ida-init.exe`. It uses `ida.exe` from the current directory
-or next to itself; otherwise, it asks for the IDA installation directory.
+or next to itself; otherwise, it opens a folder picker for the IDA installation
+directory.
 
 ```shell
 ida-init.exe

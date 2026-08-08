@@ -11,6 +11,7 @@ cliclack = "0.5.5"
 [target.'cfg(windows)'.dependencies]
 known-folders = "1.4.2"
 lnks = "0.2.0"
+rfd = { version = "0.17.2", default-features = false }
 winreg = "0.56.0"
 
 [dev-dependencies]

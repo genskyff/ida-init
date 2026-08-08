@@ -67,17 +67,27 @@ fn run(cli: Cli) -> Result<()> {
     } else if !io::stdin().is_terminal() {
         IdaInstallation::discover(None)?
     } else {
-        let root: PathBuf = cliclack::input("Where is IDA installed?")
-            .placeholder("Directory containing ida.exe")
-            .validate(|input: &String| {
-                if std::path::Path::new(input).join("ida.exe").is_file() {
-                    Ok(())
-                } else {
-                    Err("ida.exe was not found in this directory")
-                }
-            })
-            .interact()?;
-        IdaInstallation::discover(Some(&root))?
+        log::info("ida.exe was not found; select the IDA installation directory in the dialog")?;
+        loop {
+            let Some(root) = rfd::FileDialog::new()
+                .set_title("Select the IDA installation directory")
+                .pick_folder()
+            else {
+                return Err(io::Error::new(
+                    io::ErrorKind::Interrupted,
+                    "directory selection cancelled",
+                )
+                .into());
+            };
+            if let Some(installation) = IdaInstallation::find_in(&root)? {
+                break installation;
+            }
+            rfd::MessageDialog::new()
+                .set_level(rfd::MessageLevel::Error)
+                .set_title("Invalid IDA directory")
+                .set_description("The selected directory does not contain ida.exe.")
+                .show();
+        }
     };
     if installation.executable_exists() {
         log::success(format!(

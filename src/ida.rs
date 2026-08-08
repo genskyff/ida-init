@@ -66,9 +66,20 @@ enum ExecutableRequirement {
 
 impl IdaInstallation {
     pub fn discover(root: Option<&Path>) -> Result<Self> {
-        Self::locate(root, ExecutableRequirement::Required)?.context(
+        let installation = match root {
+            Some(root) => Self::find_in(root)?,
+            None => Self::discover_default()?,
+        };
+        installation.context(
             "ida.exe was not found; place ida-init.exe in the IDA directory or run it from there",
         )
+    }
+
+    pub fn find_in(root: &Path) -> Result<Option<Self>> {
+        if !root.join(IDA_EXECUTABLE).is_file() {
+            return Ok(None);
+        }
+        Self::from_root(root.to_owned(), ExecutableRequirement::Required).map(Some)
     }
 
     pub fn discover_default() -> Result<Option<Self>> {
@@ -324,16 +335,15 @@ mod tests {
     }
 
     #[test]
-    fn rejects_a_directory_without_ida() {
+    fn rejects_a_directory_without_ida() -> Result<()> {
         let directory = tempdir().unwrap();
 
-        let error = IdaInstallation::from_root(
-            directory.path().to_owned(),
-            ExecutableRequirement::Required,
-        )
-        .unwrap_err();
+        assert!(IdaInstallation::find_in(directory.path())?.is_none());
+
+        let error = IdaInstallation::discover(Some(directory.path())).unwrap_err();
 
         assert!(error.to_string().contains("ida.exe was not found"));
+        Ok(())
     }
 
     #[test]
