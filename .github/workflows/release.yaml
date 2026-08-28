@@ -24,6 +24,9 @@ jobs:
         with:
           components: clippy, rustfmt
 
+      - name: Run check
+        run: cargo check --locked
+
       - name: Run rustfmt
         run: cargo fmt -- --check
 
@@ -31,7 +34,7 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
 
       - name: Run test
-        run: cargo test --verbose
+        run: cargo test
 
   package:
     needs: check
@@ -57,13 +60,13 @@ jobs:
         uses: vimtor/action-zip@v1
         with:
           files: target/release/${{ env.NAME }}.exe
-          dest: ${{ env.NAME }}.zip
+          dest: ${{ env.NAME }}-${{ github.ref_name }}-win-x64.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.NAME }}.zip
-          path: ${{ env.NAME }}.zip
+          name: ${{ env.NAME }}-${{ github.ref_name }}-win-x64.zip
+          path: ${{ env.NAME }}-${{ github.ref_name }}-win-x64.zip
           if-no-files-found: error
 
   release:

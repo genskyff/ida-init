@@ -25,6 +25,9 @@ jobs:
         with:
           components: clippy, rustfmt
 
+      - name: Run check
+        run: cargo check --locked
+
       - name: Run rustfmt
         run: cargo fmt -- --check
 
@@ -32,7 +35,4 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
 
       - name: Run test
-        run: cargo test --verbose
-
-      - name: Run build
-        run: cargo build --locked --verbose
+        run: cargo test
